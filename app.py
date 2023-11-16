@@ -6,28 +6,30 @@ import os
 from apikey import apikey
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
+from langchain import PromptTemplate
+from langchain.chains import SimpleSequentialChain
 
-#LLM
 os.environ['OPENAI_API_KEY'] = apikey
-llm = OpenAI(temperature = 0.9)
 
 #Framework
-st.title('Afterflea aios Objective 1')
-with st.form("my_form"):
-    prompt_list = []
+st.title('Afterflea aios Objective 1 Clothing store recommendation')
 
-    prompt_list.append(st.text_input('situation:'))
+chain_list = []
 
-    prompt_list.append(st.text_input('emotion:'))
+type_i = st.text_input('type:')
+color_i = st.text_input('color:')
+city_i = st.text_input('city:')
+extra_i = st.text_area('Fill in with more details, please.')
 
-    prompt_list.append(st.text_input('resolution:'))
+prompt_template = PromptTemplate(
+    input_variables=["type", "color", "city", "extra"],
+    template="find a store that sells {type} in the color {color} in the city {city} {extra}."
+)   
+#llm
+llm = OpenAI(temperature = 0.9)
 
-    prompt_list.append(st.text_area('Fill in with more details, please.'))
+chain = (LLMChain(llm=llm, prompt=prompt_template, verbose=True))
 
-    input = ' '.join(prompt_list)
-    
-    submit = st.form_submit_button()
-
-    if(input != ' ' and submit):
-        response = llm(input)
-        st.write(response)
+if((len(type_i) + len(color_i) + len(city_i) + len(extra_i)) > 0):
+    response = chain.run(type = type_i, color = color_i, city = city_i, extra = extra_i)
+    st.write(response)
